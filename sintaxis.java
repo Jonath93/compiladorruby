@@ -1,10 +1,7 @@
 package compiladorruby;
 
 import java.util.Stack;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+
 
 class sintaxis {
 
@@ -66,10 +63,11 @@ class sintaxis {
         BloquePrincipal();
         
 //        Lista_externals.Mostrar();
-        pila.push("Tope");
-        mostrarPila();
-        polisher.Mostrar();
-        ListaNuevo.Mostrar();
+//        pila.push("Tope");
+//        mostrarPila();
+//        polisher.Mostrar();
+        mostrarPostFijo();
+//        ListaNuevo.Mostrar();
     }
 
     private boolean BloquePrincipal() {
@@ -77,13 +75,8 @@ class sintaxis {
       if(p.token==100){//id
           aux2=p;
           p=p.sig;
-//          if(ListaNuevo.nodoEncontrado(aux2.lexema,false)){
-//              ImprimirErrores(600);
-//          }else{
-//              ListaNuevo.Insertar_Nodo_Final(aux2.lexema, false);
-//          }
             if(p.token==120){//=
-                insertar_Postfijo(p.token,"operador");
+                insertar_Postfijo(p.token);
                 p=p.sig;
                 if(p.token==100||p.token==108 || p.token==102 || p.token==101){//id,
                     Variables();
@@ -107,9 +100,7 @@ class sintaxis {
     }
     private boolean Variables(){
             
-        
-//            if(p.token==120){//=
-//                p=p.sig;
+
                 if(p.token==108 || p.token==101 || p.token==102){//String,d,d.d
                     switch (p.token){
                         case 108 : tipo="String";
@@ -120,18 +111,23 @@ class sintaxis {
                         break;
                     }
                     if(ListaNuevo.nodoEncontrado(aux2.lexema)){
-                        ImprimirErrores(600);
-                    }else{
+                        indice++;
+                         ListaNuevo.Insertar_Nodo_Final(aux2.lexema,tipo,indice);
+                    } else{
                         ListaNuevo.Insertar_Nodo_Final(aux2.lexema,tipo,indice);
                     }
+                    polisher.Insertar_alFinal(aux2.lexema, tipo);
+                    polisher.Insertar_alFinal(p.lexema, tipo);
                     p=p.sig;
                     if(p.token==124){//;
+                        insertar_Postfijo(p.token);
                         p=p.sig;
                         return true;
                     }else if(p.token==103 || p.token==104||p.token==106||p.token==105){
                         bloqueAritmetico();
                     }
                 }if(p.token==100){//id
+                    polisher.Insertar_alFinal(aux2.lexema, tipo);
                     bloqueAritmetico();
                 }else{
                     ImprimirErrores(520);//digito o id
@@ -391,16 +387,19 @@ class sintaxis {
     private boolean bloqueAritmetico() {
         nodo aux =p;
         if(p.token==100|| p.token==101||p.token==102){//id
-            if(!ListaNuevo.nodoEncontrado(aux.lexema)){
-                ImprimirErrores(601);
+                if(p.token==100){
+                    if(!ListaNuevo.nodoEncontrado(aux.lexema)){
+                    ImprimirErrores(601);
+                }
             }
             polisher.Insertar_alFinal(aux.lexema, tipo);
             p=p.sig;
             if(p.token==103 || p.token==104||p.token==106||p.token==105){//+ - * /
-                insertar_Postfijo(p.token,"operador");
+                insertar_Postfijo(p.token);
                 p=p.sig;
                 bloqueAritmetico();
             }else if(p.token==124){//;
+                insertar_Postfijo(p.token);
                 p=p.sig;
                 return true;
             }else{
@@ -510,7 +509,7 @@ class sintaxis {
         polisher.Pri = null;
     }
     
-     private void insertar_Postfijo(int tokenPolish, String tipoPolish) {
+     private void insertar_Postfijo(int tokenPolish) {
         // System.out.println("operador: " + tokenPolish);
         if (pila.empty()) {
             pila.push(tokenPolish);
@@ -551,12 +550,12 @@ class sintaxis {
                 if (auxToken == 105 || auxToken == 106) {// * /
                     if (auxToken == 105) {
                         polisher.Insertar_alFinal("*", "operador");
-//                        pila.pop();
+                        pila.pop();
                         pila.push(tokenPolish);
                     }
                     if (auxToken == 106) {
                         polisher.Insertar_alFinal("/", "operador");
-//                        pila.pop();
+                        pila.pop();
                         pila.push(tokenPolish);
                     }
                 }
@@ -574,14 +573,36 @@ class sintaxis {
                 }
 
             }
-//            if(auxToken == 120){
-//                
-//            }
+            if(tokenPolish == 124){//;
+                
+                while(!pila.empty()){
+                    auxToken= (int) pila.peek();
+                    if(auxToken==103){
+                        polisher.Insertar_alFinal("+", "operador");
+                        pila.pop();
+                    }
+                    if(auxToken==104){
+                        polisher.Insertar_alFinal("-", "operador");
+                        pila.pop();
+                    }
+                    if(auxToken==105){
+                        polisher.Insertar_alFinal("*", "operador");
+                        pila.pop();
+                    }
+                    if(auxToken==106){
+                        polisher.Insertar_alFinal("/", "operador");
+                        pila.pop();
+                    }
+                    if(auxToken==120){
+                        polisher.Insertar_alFinal("=", "operador");
+                        pila.pop();
+                    }
+                }
+            }
 
         }
 
-    }
+    }//fin del metodo
 
-    
-    
+       
 }
