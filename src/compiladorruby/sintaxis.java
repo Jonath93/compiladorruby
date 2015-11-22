@@ -10,6 +10,7 @@ class sintaxis {
     //variable de nodo
     nodo p;
     nodo aux2 = p;
+    nodo auxtipo=p;
     //Llamado de lista
     String tipo;
     Stack pila = new Stack();
@@ -64,10 +65,12 @@ class sintaxis {
         
 //        Lista_externals.Mostrar();
 //        pila.push("Tope");
-//        mostrarPila();
+        
 //        polisher.Mostrar();
-        mostrarPostFijo();
-//        ListaNuevo.Mostrar();
+//        mostrarPostFijo();
+ //      ListaNuevo.Mostrar();
+      CompatibilidadTipos();
+      mostrarPila();
     }
 
     private boolean BloquePrincipal() {
@@ -105,22 +108,23 @@ class sintaxis {
                     switch (p.token){
                         case 108 : tipo="String";
                             break;
-                        case 101 : tipo="Int";
+                        case 101 : tipo="int";
                             break;
-                        case 102 : tipo="Real";
+                        case 102 : tipo="float";
                         break;
                     }
+                    //auxtipo=p;
                     if(ListaNuevo.nodoEncontrado(aux2.lexema)){
                         indice++;
-                         ListaNuevo.Insertar_Nodo_Final(aux2.lexema,tipo,indice);
+                         ListaNuevo.Insertar_Nodo_Final(aux2.lexema+indice,tipo,indice);
                     } else{
                         ListaNuevo.Insertar_Nodo_Final(aux2.lexema,tipo,indice);
                     }
-                    polisher.Insertar_alFinal(aux2.lexema, tipo);
-                    polisher.Insertar_alFinal(p.lexema, tipo);
+                    //polisher.Insertar_alFinal(aux2.lexema, tipo);
+                    //polisher.Insertar_alFinal(p.lexema, tipo);
                     p=p.sig;
                     if(p.token==124){//;
-                        insertar_Postfijo(p.token);
+                        //insertar_Postfijo(p.token);
                         p=p.sig;
                         return true;
                     }else if(p.token==103 || p.token==104||p.token==106||p.token==105){
@@ -386,11 +390,19 @@ class sintaxis {
     }
     private boolean bloqueAritmetico() {
         nodo aux =p;
-        if(p.token==100|| p.token==101||p.token==102){//id
-                if(p.token==100){
-                    if(!ListaNuevo.nodoEncontrado(aux.lexema)){
+        if(p.token==100|| p.token==101||p.token==102 || p.token==108){//id
+            if(p.token==100){
+                if(!ListaNuevo.nodoEncontrado(aux.lexema)){
                     ImprimirErrores(601);
-                }
+                } 
+            }
+            switch (p.token){
+                        case 108 : tipo="String";
+                            break;
+                        case 101 : tipo="int";
+                            break;
+                        case 102 : tipo="float";
+                        break;
             }
             polisher.Insertar_alFinal(aux.lexema, tipo);
             p=p.sig;
@@ -427,7 +439,7 @@ class sintaxis {
 
         }
         //mostrarPostFijo();
-        verificarTipos();
+//        verificarTipos();
 
     }
 
@@ -437,77 +449,40 @@ class sintaxis {
         }
         System.out.println(pila.toString());
     }
-
-    private void verificarTipos() {
-        ListaPolish polisher2 = polisher;
-        Stack pilaVerificadora = new Stack();
-        NodoPolish Actual = polisher2.Pri;
-        
-        if (polisher2.Lista_IDTipoVacia()) {
-            System.out.println("La lista esta vacia");
-        }
-
-        while (Actual != null) {
-
-            if (Actual.tipo.equals("operador")) {
-                if (pilaVerificadora.empty()) {
-                    System.out.println("Pila verificadora vacia");
-                } else {
-                    //Verificar tipos
-                    String tipo2 = (String) pilaVerificadora.peek();
-                    System.out.println((String) pilaVerificadora.peek());
-                    pilaVerificadora.pop();
-                    String tipo1;
-                    if (pilaVerificadora.empty()) {
-                        tipo1 = tipo2;
-                    } else {
-                        tipo1 = (String) pilaVerificadora.peek();
-                        pilaVerificadora.pop();
-                    }
-
-                    String tipoOperador;
-                    String ActualOperador = Actual.lexema;
-                    tipoOperador = ActualOperador.toString();
-                    switch (tipoOperador) {
-                        case "105":
-                            tipoOperador = "*";
-                            break;
-                        case "106":
-                            tipoOperador = "/";
-                            break;
-                        case "103":
-                            tipoOperador = "+";
-                            break;
-                        case "104":
-                            tipoOperador = "-";
-                            break;
-                        case "120":
-                            tipoOperador = "=";
-                            break;
-                    }
-
-                    if (listatipos.tipoEncontrado(tipo1, tipoOperador, tipo2)) {
-                        pilaVerificadora.push(listatipos.tipoResultante(tipo1, tipoOperador, tipo2));
-                    } else {
-                        ImprimirErrores(602); //Incompatibilidad de tipos
-                    }
-                }
-
-            } else {
-                pilaVerificadora.push(Actual.tipo);
-            }
-            //System.out.println(Actual.tipo);
-            Actual = Actual.sig;
-        }
-        mostrarPostFijo();
-
-    }
-
     private void mostrarPostFijo() {
         polisher.Mostrar();
 
         polisher.Pri = null;
     }
+    
+     private void CompatibilidadTipos(){
+         String Operador="";
+         ListaPolish polish = polisher;
+         NodoPolish Actual= polish.Pri;
+         
+         while(!Actual.tipo.equals("operador")){
+             pila.push(Actual.tipo);
+             Actual=Actual.sig;
+         }
+         Operador=Actual.lexema;
+         String tipo2=(String) pila.peek();
+         System.out.println(tipo2);
+         pila.pop();
+         String tipo1 = (String) pila.peek();
+         System.out.println(tipo1);
+         pila.pop();
+         
+         if(listatipos.tipoEncontrado(tipo1, Operador, tipo2)){
+             System.out.println("tipo compatible");
+         }
+         listatipos.tipoResultante(tipo1, Operador, tipo2);
+                 
+         //listatipos.tipoEncontrado(tipo2,Operador ,tipo3 );
+         
+         
+        
+    }
+    
     
      private void insertar_Postfijo(int tokenPolish) {
         // System.out.println("operador: " + tokenPolish);
@@ -604,5 +579,8 @@ class sintaxis {
 
     }//fin del metodo
 
+  
+
+   
        
 }
